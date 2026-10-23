@@ -3,6 +3,10 @@
 *.json
 !README.md
 nuclei-report*
+
+# Documentation output
+docs/_build/
+site/
 *.log
 
 # OS
