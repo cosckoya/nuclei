@@ -1,0 +1,55 @@
+# Example Nuclei scan configuration
+# Copy this file to nuclei-config.yaml and customize for your environment
+
+# Custom headers for bug bounty traffic identification
+header:
+  - "X-BugBounty-Hacker: h1/your-username"
+  - "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Nuclei/3.x"
+
+# Default template directories
+templates:
+  - templates/
+
+# Default workflow directories
+workflows:
+  - workflows/
+
+# Template filters
+tags:
+  - cve
+  - exposure
+  - misconfiguration
+  - technology
+
+severity:
+  - critical
+  - high
+  - medium
+  - low
+
+# Exclude noisy tags
+exclude-tags:
+  - info
+  - fuzz
+  - dos
+
+# Rate limiting
+rate-limit: 150
+bulk-size: 25
+concurrency: 25
+
+# Timeouts
+timeout: 10
+retries: 1
+max-redirects: 10
+
+# Output
+jsonl: true
+omit-raw: true
+omit-template: true
+
+# Project folder to avoid duplicate requests
+project: true
+
+# Follow redirects
+follow-redirects: true

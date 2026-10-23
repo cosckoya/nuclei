@@ -1,0 +1,41 @@
+id: cosckoya-exposure-apache-status
+
+info:
+  name: Apache Server-Status Exposure
+  author: cosckoya
+  severity: medium
+  description: |
+    Apache mod_status is exposed without authentication, revealing
+    server internals, virtual hosts, and active requests.
+  reference:
+    - https://httpd.apache.org/docs/2.4/mod/mod_status.html
+  tags: exposure,apache,server-status,unauth
+  metadata:
+    max-request: 2
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/server-status"
+      - "{{BaseURL}}/server-status?auto"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Apache Server Status"
+          - "Server uptime"
+          - "Scoreboard"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: apache-version
+        regex:
+          - "Apache/([0-9.]+)"
+        group: 1

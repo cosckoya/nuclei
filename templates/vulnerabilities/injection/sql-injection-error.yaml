@@ -1,0 +1,49 @@
+id: cosckoya-vulnerability-sql-injection-error
+
+info:
+  name: SQL Injection Error-Based Detection
+  author: cosckoya
+  severity: high
+  description: |
+    Detects error-based SQL injection vulnerabilities by sending
+    common SQL injection payloads and checking for database error
+    messages in the response.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  tags: vulnerability,sqli,sql-injection,error-based,web
+  metadata:
+    max-request: 8
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1'"
+      - "{{BaseURL}}/?id=1%27"
+      - "{{BaseURL}}/?id=1%22"
+      - "{{BaseURL}}/?id=1))"
+      - "{{BaseURL}}/?id=1+UNION+SELECT+1,2,3--"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "sql syntax"
+          - "mysql_fetch"
+          - "ORA-00933"
+          - "Microsoft OLE DB"
+          - "PostgreSQL query failed"
+          - "ODBC Driver"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 500
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: sql-error
+        regex:
+          - "(sql syntax|mysql_fetch|ORA-00933|Microsoft OLE DB)"
+        group: 0

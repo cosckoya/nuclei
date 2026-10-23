@@ -1,0 +1,41 @@
+id: cosckoya-misconfig-aws-s3-list
+
+info:
+  name: AWS S3 Bucket Listing Enabled
+  author: cosckoya
+  severity: high
+  description: |
+    An AWS S3 bucket allows public listing of objects, potentially
+    exposing sensitive files and data.
+  reference:
+    - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+  tags: misconfig,aws,s3,cloud,bucket-listing
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?list-type=2"
+      - "{{BaseURL}}/?prefix="
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ListBucketResult"
+          - "Contents"
+          - "Key"
+        part: body
+        condition: and
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: bucket-name
+        regex:
+          - "<Name>([^<]+)</Name>"
+        group: 1

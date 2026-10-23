@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  nuclei:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cosckoya/nuclei:latest
+    container_name: nuclei-scanner
+    volumes:
+      - ./templates:/nuclei/templates:ro
+      - ./workflows:/nuclei/workflows:ro
+      - ./output:/output:rw
+      - nuclei-data:/root/.nuclei
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PDCP_API_KEY=${PDCP_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    command: >
+      -c /nuclei/config.yaml
+      -t /nuclei/templates
+      -w /nuclei/workflows
+      -target ${TARGET:-https://example.com}
+      -severity ${SEVERITY:-medium}
+      -jsonl -o /output/results.jsonl
+
+volumes:
+  nuclei-data:

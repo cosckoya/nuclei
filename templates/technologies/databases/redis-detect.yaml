@@ -1,0 +1,30 @@
+id: cosckoya-technology-redis-detect
+
+info:
+  name: Redis Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects Redis server by checking INFO command response.
+  reference:
+    - https://redis.io/
+  tags: technology,redis,database,cache,detect
+  metadata:
+    max-request: 1
+
+network:
+  - inputs:
+      - data: "INFO\r\n"
+    host:
+      - "{{Hostname}}"
+      - "{{Host}}:6379"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "redis_version"
+        part: data
+      - type: status
+        status:
+          - 200

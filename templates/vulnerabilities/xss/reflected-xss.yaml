@@ -1,0 +1,46 @@
+id: cosckoya-vulnerability-xss-reflected
+
+info:
+  name: Reflected XSS Detection
+  author: cosckoya
+  severity: medium
+  description: |
+    Detects reflected cross-site scripting vulnerabilities by injecting
+    a unique payload and checking if it is reflected in the response.
+  reference:
+    - https://owasp.org/www-community/attacks/xss/
+  tags: vulnerability,xss,reflected,web,owasp
+  metadata:
+    max-request: 6
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?q=<script>alert(1)</script>"
+      - "{{BaseURL}}/?search=<img src=x onerror=alert(1)>"
+      - "{{BaseURL}}/?name=<svg onload=alert(1)>"
+      - "{{BaseURL}}/?input=<body onload=alert(1)>"
+      - "{{BaseURL}}/?q=<iframe src=javascript:alert(1)>"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<script>alert(1)</script>"
+          - "<img src=x onerror=alert(1)>"
+          - "<svg onload=alert(1)>"
+          - "<body onload=alert(1)>"
+          - "<iframe src=javascript:alert(1)>"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: xss-payload
+        regex:
+          - "(alert\(1\))"
+        group: 1

@@ -4,8 +4,6 @@ This document defines the YAML schema, required fields, matchers, extractors, an
 
 ## Template Schema
 
-A minimal Nuclei template:
-
 ```yaml
 id: cosckoya-<kebab-case-name>
 
@@ -15,10 +13,13 @@ info:
   severity: medium
   description: What this template detects.
   reference:
-    - https://example.com/docs/
+    - https://example.com/advisory
   tags: tag1,tag2
+  metadata:
+    max-request: 1
+    verified: true
 
-http:
+<protocol>:
   - method: GET
     path:
       - "{{BaseURL}}/endpoint"
@@ -32,68 +33,92 @@ http:
       - type: status
         status:
           - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: extracted-value
+        regex:
+          - "pattern (.*)"
+        group: 1
 ```
 
 ## Required `info` Fields
 
 | Field | Required | Description | Example |
 |-------|----------|-------------|---------|
-| `id` | ✅ | Unique identifier, prefixed with `cosckoya-` | `cosckoya-grafana-panel` |
-| `name` | ✅ | Human-readable title | `Grafana Exposed Panel` |
+| `id` | ✅ | Unique ID, prefixed with `cosckoya-` | `cosckoya-cve-2024-45046` |
+| `name` | ✅ | Human-readable title | `Apache OFBiz Path Traversal` |
 | `author` | ✅ | Template author | `cosckoya` |
-| `severity` | ✅ | `info`, `low`, `medium`, `high`, `critical` | `medium` |
-| `description` | ✅ | What the template detects | `An exposed Grafana instance` |
-| `reference` | ❌ | Links to documentation or advisories | URL list |
-| `tags` | ❌ | Comma-separated keywords | `grafana,panel,exposed` |
+| `severity` | ✅ | `info`, `low`, `medium`, `high`, `critical` | `critical` |
+| `description` | ✅ | What the template detects | `Path traversal in OFBiz` |
+| `reference` | ❌ | Links to advisories | URL list |
+| `tags` | ❌ | Comma-separated keywords | `cve,cve2024,ofbiz` |
+| `metadata` | ❌ | Additional metadata | `max-request`, `verified` |
 
 ## Naming Convention
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Template ID | `cosckoya-<kebab-case>` | `cosckoya-grafana-exposed-panel` |
-| File name | `<kebab-case>.yaml` | `grafana-exposed-panel.yaml` |
-| Directory | `<protocol>/<category>/` | `http/exposed-panels/` |
+| Template ID | `cosckoya-<kebab-case>` | `cosckoya-cve-2024-45046` |
+| File name | `<kebab-case>.yaml` | `CVE-2024-45046.yaml` |
+| Directory | `<protocol>/<category>/` | `templates/cves/2024/` |
+| Author | `cosckoya` | — |
 
-## Common Protocols
+## Protocol Directories
 
-| Protocol | Directory | Description |
-|----------|-----------|-------------|
-| `http` | `templates/http/` | HTTP requests and responses |
+| Protocol | Directory | Use Case |
+|----------|-----------|----------|
+| `http` | `templates/http/` | HTTP requests/responses |
 | `dns` | `templates/dns/` | DNS queries |
 | `ssl` | `templates/ssl/` | SSL/TLS certificates |
-| `network` | `templates/network/` | Raw network probes |
+| `tcp` | `templates/tcp/` | Raw TCP probes |
+| `network` | `templates/network/` | Network-level templates |
+| `javascript` | `templates/javascript/` | JavaScript-based detection |
+| `code` | `templates/code/` | Go-based code templates |
 
 ## Matchers
 
-Matchers determine if a target is vulnerable. Common types:
+Common matcher types:
 
-- `word` — match a string in body, header, or status line
-- `status` — match HTTP status codes
-- `regex` — match a regular expression
-- `dsl` — match using Nuclei DSL expressions
+- `word` — Match a string in body, header, or status line
+- `status` — Match HTTP status codes
+- `regex` — Match a regular expression
+- `dsl` — Match using Nuclei DSL expressions
 
 Use `matchers-condition: and` or `or` to combine multiple matchers.
 
 ## Extractors
 
-Extractors pull data from the response for reporting:
+Use `name` on extractors to share values across workflow templates:
 
 ```yaml
 extractors:
   - type: regex
-    part: header
+    part: body
+    name: session-token
     regex:
-      - "(?i)grafana"
+      - 'token=([^&]+)'
+    group: 1
 ```
 
-## Testing Locally
+Referenced in subsequent templates as `{{session-token}}`.
+
+## Validation
 
 ```bash
-nuclei -t templates/http/exposed-panels/your-template.yaml -target https://example.com
+nuclei -validate -t templates/your-template.yaml
+nuclei -validate -t templates/
+```
+
+## Commit Convention
+
+```bash
+git commit -m "feat: add <template-name> template" -m "Co-Authored-By: Roy Batty <roy.batty@cosckoya.bot>"
 ```
 
 ## Related Documents
 
-- [docs/gitflow.md](../gitflow.md) — contribution workflow
-- [docs/how-to/add-template.md](../how-to/add-template.md) — adding a template step-by-step
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — contribution process
+- [docs/gitflow.md](../gitflow.md) — Contribution workflow
+- [docs/how-to/add-template.md](../how-to/add-template.md) — Adding templates step-by-step
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — Contribution process

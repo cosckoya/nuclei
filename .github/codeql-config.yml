@@ -1,0 +1,14 @@
+# CodeQL configuration for Nuclei scan results
+# This file configures how SARIF results from Nuclei are processed
+
+paths:
+  - templates/
+  - workflows/
+
+paths-ignore:
+  - docs/
+  - examples/
+  - scripts/
+
+queries:
+  - uses: security-and-quality
