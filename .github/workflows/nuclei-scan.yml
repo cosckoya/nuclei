@@ -92,7 +92,7 @@ jobs:
             -o results.jsonl || true
 
       - name: Upload scan results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nuclei-results
           path: results.jsonl
