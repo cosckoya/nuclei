@@ -1,0 +1,42 @@
+# GitHub Actions workflow for Dependabot updates and template validation
+name: "Template Validation"
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'templates/**'
+      - 'workflows/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'templates/**'
+      - 'workflows/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Validate templates
+        run: nuclei -validate -t templates/
+
+      - name: Validate workflows
+        run: nuclei -validate -w workflows/
+
+      - name: Lint YAML files
+        run: |
+          find templates/ workflows/ -name "*.yaml" -exec python3 -c "
+import yaml, sys
+with open(sys.argv[1]) as f:
+    yaml.safe_load(f)
+" {} \;

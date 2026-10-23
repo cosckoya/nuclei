@@ -1,76 +1,95 @@
 # Repository Structure — Reference
 
-This document describes the directory structure and conventions used in the `cosckoya/nuclei` repository.
+This document describes the complete directory structure of the `cosckoya/nuclei` repository.
 
 ## Top-Level Layout
 
 ```text
 nuclei/
+├── .agentic/                 # OpenCode agent configuration
+│   ├── AGENTS.md             # Agent delegation map
+│   ├── rules/stacks/         # Stack-specific rules (3)
+│   └── skills/               # Skill modules (3)
+├── .devcontainer/            # VS Code Codespaces configuration
+│   ├── devcontainer.json
+│   └── docker-compose.yml
 ├── .github/
-│   └── workflows/
-│       └── nuclei-scan.yml          # CI/CD scanning workflow
-├── .gitignore                       # Ignored files (Nuclei output, OS, IDE)
-├── nuclei-config.yaml               # Nuclei runner configuration
-├── README.md                        # Project landing page
-├── LICENSE                          # MIT license text
-├── CONTRIBUTING.md                  # Contribution process
-├── SECURITY.md                      # Security policy
-├── CHANGELOG.md                     # Version history
-├── docs/
-│   ├── gitflow.md                   # Branching model and PR workflow
-│   ├── tutorials/
-│   │   └── first-scan.md            # Getting started tutorial
-│   ├── how-to/
-│   │   └── add-template.md          # How to contribute a template
-│   ├── reference/
-│   │   ├── structure.md             # This file
-│   │   └── template-authoring.md    # YAML schema and naming
-│   └── explanation/
-│       └── design-decisions.md      # Design rationale
-├── templates/                       # Nuclei templates (YAML)
-│   └── http/
-│       └── exposed-panels/
-│           └── grafana-exposed.yaml
-└── workflows/                       # Nuclei workflows (YAML)
-    └── example.workflow.yaml
+│   ├── ISSUE_TEMPLATE/       # bug_report.md, template_request.md
+│   ├── workflows/
+│   │   ├── dependabot.yml    # Auto dependency updates
+│   │   ├── nuclei-scan.yml   # CI/CD scanning pipeline
+│   │   └── validate.yml      # Template validation
+│   └── codeql-config.yml     # CodeQL configuration
+├── .gitignore                # Git ignore rules
+├── .nuclei-ignore            # Nuclei default template exclusions
+├── .pre-commit-config.yaml   # Pre-commit hooks
+├── .sops.yaml                # SOPS encrypted secrets
+├── CLAUDE.md                 # Claude Code / AI agent context
+├── CODEOWNERS                # Team ownership
+├── CONTRIBUTING.md           # Contribution process
+├── Dockerfile                # Containerized Nuclei image
+├── LICENSE                   # MIT license
+├── Makefile                  # Automation targets
+├── README.md                 # Project landing page
+├── SECURITY.md               # Security policy
+├── SCRIPTS/                  # Automation scripts
+│   └── nuclei-scan.sh        # Scan wrapper script
+├── examples/                 # Example files
+│   ├── targets.txt
+│   ├── nuclei-config.yaml.example
+│   └── custom-workflow.yaml.example
+├── nuclei-config.yaml        # Nuclei runner configuration
+├── templates/                # Nuclei templates (YAML)
+│   ├── cves/
+│   │   ├── 2024/
+│   │   └── 2025/
+│   ├── exposures/
+│   │   ├── panels/
+│   │   └── files/
+│   ├── misconfiguration/
+│   │   ├── cloud/
+│   │   └── web/
+│   ├── technologies/
+│   │   ├── webservers/
+│   │   ├── cms/
+│   │   ├── monitoring/
+│   │   └── databases/
+│   └── vulnerabilities/
+│       ├── auth/
+│       ├── injection/
+│       └── xss/
+├── workflows/                # Nuclei workflows (YAML)
+│   ├── full-scan.yaml
+│   ├── critical-cves.yaml
+│   ├── exposure-scan.yaml
+│   ├── wordpress-scan.yaml
+│   └── jira-scan.yaml
+└── docs/                     # Diátaxis documentation
+    ├── gitflow.md
+    ├── tutorials/
+    ├── how-to/
+    ├── reference/
+    └── explanation/
 ```
 
-## `templates/` Directory
+## Template Directory Categories
 
-Organized by protocol, then category:
-
-```text
-templates/
-  http/
-    exposed-panels/      # Exposed admin panels, dashboards
-    misconfiguration/    # HTTP misconfigurations
-    vulnerabilities/     # Known CVEs and exposures
-  dns/                   # DNS-related templates
-  ssl/                   # SSL/TLS templates
-  network/               # Network-level templates
-```
-
-Template files are named `cosckoya-<kebab-case>.yaml`.
-
-## `workflows/` Directory
-
-Contains Nuclei workflow YAML files that chain multiple templates together.
-
-## `nuclei-config.yaml`
-
-Runner configuration consumed by `nuclei -c nuclei-config.yaml`. Defines:
-
-- Template and workflow paths
-- Allowed severity levels
-- Output format (JSONL)
-- Rate limiting, timeouts, retries
-
-## `.github/workflows/nuclei-scan.yml`
-
-GitHub Actions workflow that runs templates on a schedule and via manual dispatch, uploading results as an artifact.
+| Category | Description |
+|----------|-------------|
+| `cves/` | Known CVE vulnerability templates by year |
+| `exposures/panels/` | Exposed admin panels and dashboards |
+| `exposures/files/` | Exposed configuration and sensitive files |
+| `misconfiguration/cloud/` | Cloud misconfigurations (AWS, Azure, GCP) |
+| `misconfiguration/web/` | Web misconfigurations (open redirect, etc.) |
+| `technologies/webservers/` | Web server detection |
+| `technologies/cms/` | CMS detection (WordPress, etc.) |
+| `technologies/monitoring/` | Monitoring tools (Grafana, etc.) |
+| `technologies/databases/` | Database detection (MySQL, PostgreSQL, Redis) |
+| `vulnerabilities/auth/` | Authentication vulnerabilities |
+| `vulnerabilities/injection/` | Injection vulnerabilities (SQLi, etc.) |
+| `vulnerabilities/xss/` | Cross-site scripting vulnerabilities |
 
 ## Related Documents
 
-- [docs/reference/template-authoring.md](template-authoring.md) — writing templates
-- [docs/gitflow.md](../gitflow.md) — contribution workflow
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributing to the project
+- [docs/reference/template-authoring.md](template-authoring.md) — YAML schema
+- [docs/gitflow.md](../gitflow.md) — Contribution workflow

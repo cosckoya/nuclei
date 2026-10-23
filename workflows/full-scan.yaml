@@ -1,0 +1,47 @@
+id: cosckoya-workflow-full-scan
+
+info:
+  name: Full Security Scan Workflow
+  author: cosckoya
+  severity: high
+  description: |
+    Comprehensive security scan workflow that starts with technology
+    detection, then runs targeted vulnerability checks based on
+    detected technologies. Uses conditional execution for efficiency.
+  tags: workflow,full-scan,comprehensive,conditional
+
+workflows:
+  - template: technologies/webservers/apache-detect.yaml
+    matchers:
+      - name: apache-detected
+        subtemplates:
+          - tags: apache
+          - template: exposures/panels/apache-status.yaml
+          - template: misconfiguration/web/open-redirect.yaml
+  - template: technologies/webservers/nginx-detect.yaml
+    matchers:
+      - name: nginx-detected
+        subtemplates:
+          - tags: nginx
+          - template: misconfiguration/web/open-redirect.yaml
+  - template: technologies/cms/wordpress-detect.yaml
+    matchers:
+      - name: wordpress-detected
+        subtemplates:
+          - tags: wordpress
+          - template: vulnerabilities/auth/default-credentials.yaml
+          - template: vulnerabilities/xss/reflected-xss.yaml
+  - template: technologies/webservers/iis-detect.yaml
+    matchers:
+      - name: iis-detected
+        subtemplates:
+          - tags: iis
+          - template: exposures/files/env-file.yaml
+  - template: exposures/files/env-file.yaml
+  - template: exposures/files/git-config.yaml
+  - template: cves/2024/CVE-2024-45046.yaml
+  - template: cves/2024/CVE-2024-29824.yaml
+  - template: cves/2024/CVE-2024-23692.yaml
+  - template: cves/2024/CVE-2024-3400.yaml
+  - template: cves/2024/CVE-2024-21887.yaml
+  - template: cves/2025/CVE-2025-0001.yaml

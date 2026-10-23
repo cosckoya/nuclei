@@ -1,0 +1,18 @@
+# Targets for Nuclei scanning
+# Format: one target per line (URL, host, IP, or CIDR)
+# Lines starting with # are comments
+
+# Example production targets (replace with your own)
+https://example.com
+https://test.example.com
+
+# Example staging targets
+# https://staging.example.com
+
+# Example IP ranges
+# 192.168.1.0/24
+# 10.0.0.1
+
+# Example hosts
+# api.example.com
+# admin.example.com

@@ -1,0 +1,37 @@
+id: cosckoya-technology-apache-detect
+
+info:
+  name: Apache HTTP Server Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects Apache HTTP Server by checking response headers
+    and server signatures.
+  reference:
+    - https://httpd.apache.org/
+  tags: technology,apache,webserver,detect
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Apache"
+        part: header
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: apache-version
+        regex:
+          - "Apache/([0-9.]+)"
+        group: 1

@@ -5,6 +5,7 @@
 | Version | Supported |
 |---------|-----------|
 | `main`  | ✅ Yes    |
+| `develop` | ✅ Yes  |
 
 ## Reporting a Vulnerability
 

@@ -1,0 +1,30 @@
+id: cosckoya-technology-postgres-detect
+
+info:
+  name: PostgreSQL Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects PostgreSQL database server by checking startup packet response.
+  reference:
+    - https://www.postgresql.org/
+  tags: technology,postgres,database,detect
+  metadata:
+    max-request: 1
+
+network:
+  - inputs:
+      - data: ""
+    host:
+      - "{{Hostname}}"
+      - "{{Host}}:5432"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "PostgreSQL"
+        part: data
+      - type: status
+        status:
+          - 200

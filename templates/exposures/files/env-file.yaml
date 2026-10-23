@@ -1,0 +1,51 @@
+id: cosckoya-exposure-env-file
+
+info:
+  name: Environment File Exposure
+  author: cosckoya
+  severity: high
+  description: |
+    Environment configuration files (.env) are exposed, potentially
+    revealing database credentials, API keys, and secrets.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/Information_Exposure_Through_Configuration_Files
+  tags: exposure,env,secrets,configuration,leak
+  metadata:
+    max-request: 10
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.env"
+      - "{{BaseURL}}/.env.production"
+      - "{{BaseURL}}/.env.development"
+      - "{{BaseURL}}/.env.local"
+      - "{{BaseURL}}/.env.example"
+      - "{{BaseURL}}/.env.bak"
+      - "{{BaseURL}}/.env.old"
+      - "{{BaseURL}}/.env.save"
+      - "{{BaseURL}}/.environment"
+      - "{{BaseURL}}/config/.env"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "DB_PASSWORD"
+          - "API_KEY"
+          - "SECRET_KEY"
+          - "DATABASE_URL"
+          - "MAIL_PASSWORD"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: env-variable
+        regex:
+          - "(DB_PASSWORD|API_KEY|SECRET_KEY|DATABASE_URL|MAIL_PASSWORD)=(.+)"
+        group: 1

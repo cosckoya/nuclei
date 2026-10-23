@@ -1,0 +1,42 @@
+id: cosckoya-exposure-phpinfo
+
+info:
+  name: PHP Info Page Exposure
+  author: cosckoya
+  severity: medium
+  description: |
+    A phpinfo() page is exposed, revealing PHP configuration,
+    environment variables, and server details.
+  reference:
+    - https://www.php.net/manual/en/function.phpinfo.php
+  tags: exposure,php,phpinfo,configuration
+  metadata:
+    max-request: 3
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/phpinfo.php"
+      - "{{BaseURL}}/info.php"
+      - "{{BaseURL}}/test.php"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "phpinfo()"
+          - "PHP Version"
+          - "Zend Engine"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: php-version
+        regex:
+          - "PHP Version ([0-9.]+)"
+        group: 1

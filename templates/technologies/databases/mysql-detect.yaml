@@ -1,0 +1,30 @@
+id: cosckoya-technology-mysql-detect
+
+info:
+  name: MySQL Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects MySQL database server by checking banner response.
+  reference:
+    - https://www.mysql.com/
+  tags: technology,mysql,database,detect
+  metadata:
+    max-request: 1
+
+network:
+  - inputs:
+      - data: ""
+    host:
+      - "{{Hostname}}"
+      - "{{Host}}:3306"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "MySQL"
+        part: data
+      - type: status
+        status:
+          - 200

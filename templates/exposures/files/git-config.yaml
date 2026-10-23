@@ -1,0 +1,44 @@
+id: cosckoya-exposure-git-config
+
+info:
+  name: Git Config File Exposure
+  author: cosckoya
+  severity: medium
+  description: |
+    Git configuration files are exposed, potentially revealing
+    repository credentials and internal repository information.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/Information_Exposure_Through_Configuration_Files
+  tags: exposure,git,config,leak
+  metadata:
+    max-request: 5
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.git/config"
+      - "{{BaseURL}}/.git/HEAD"
+      - "{{BaseURL}}/.git/refs/heads/main"
+      - "{{BaseURL}}/.gitignore"
+      - "{{BaseURL}}/.git/COMMIT_EDITMSG"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "[core]"
+          - "[remote \"origin\"]"
+          - "ref: refs/heads/"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: git-branch
+        regex:
+          - "ref: (refs/heads/.+)"
+        group: 1

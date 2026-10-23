@@ -1,0 +1,37 @@
+id: cosckoya-technology-nginx-detect
+
+info:
+  name: Nginx Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects Nginx web server by checking response headers
+    and server signatures.
+  reference:
+    - https://nginx.org/
+  tags: technology,nginx,webserver,detect
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "nginx"
+        part: header
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: nginx-version
+        regex:
+          - "nginx/([0-9.]+)"
+        group: 1
