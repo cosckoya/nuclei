@@ -1,0 +1,38 @@
+id: cosckoya-exposure-grafana-panel
+
+info:
+  name: Grafana Exposed Panel
+  author: cosckoya
+  severity: medium
+  description: |
+    A Grafana instance is exposed and accessible without proper authentication.
+  reference:
+    - https://grafana.com/docs/grafana/latest/security/authentication/
+  tags: exposure,grafana,panel,monitoring
+  metadata:
+    max-request: 2
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+      - "{{BaseURL}}/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Grafana"
+          - "Login"
+        part: body
+        condition: and
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: grafana-header
+        regex:
+          - "(?i)grafana"

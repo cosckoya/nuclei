@@ -1,21 +1,85 @@
-# Nuclei configuration for cosckoya/nuclei-templates
+# Nuclei configuration for cosckoya/nuclei (October 2026)
+# XDG-compliant configuration file
+# Reference: https://docs.projectdiscovery.io/tools/nuclei/running.md#nuclei-config
+
+# Custom headers for bug bounty traffic identification
+header:
+  - "X-BugBounty-Hacker: h1/cosckoya"
+  - "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Nuclei/3.x"
+
+# Default template directories
 templates:
   - templates/
 
+# Default workflow directories
 workflows:
   - workflows/
 
+# Template filters (applied by default)
+tags:
+  - cve
+  - exposure
+  - misconfiguration
+  - technology
+
 severity:
-  - info
-  - low
-  - medium
-  - high
   - critical
+  - high
+  - medium
+  - low
 
-output:
-  - jsonl
+# Exclude low-value tags by default
+exclude-tags:
+  - info
 
+# Exclude fuzzing/dast by default (requires explicit opt-in)
+exclude-tags:
+  - fuzz
+  - dos
+
+# Rate limiting
 rate-limit: 150
 bulk-size: 25
-timeout: 5
+concurrency: 25
+
+# Timeouts and retries
+timeout: 10
 retries: 1
+max-redirects: 10
+
+# Output format
+jsonl: true
+omit-raw: true
+omit-template: true
+
+# Project folder to avoid duplicate requests
+project: true
+
+# Follow redirects
+follow-redirects: true
+
+# Headless browser settings
+headless: false
+page-timeout: 20
+
+# Interactsh (OAST) settings
+no-interactsh: false
+
+# Cloud integration
+dashboard: false
+
+# Update settings
+disable-update-check: false
+disable-update-template-dir: false
+
+# Template signing
+disable-unsigned-templates: false
+
+# Self-contained templates
+enable-self-contained: false
+
+# Code templates (requires explicit opt-in)
+code: false
+
+# DS
+dast: false

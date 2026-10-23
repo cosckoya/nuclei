@@ -1,0 +1,39 @@
+id: cosckoya-exposure-jenkins-console
+
+info:
+  name: Unprotected Jenkins Console
+  author: cosckoya
+  severity: high
+  description: |
+    A Jenkins instance is accessible without authentication, allowing
+    unauthorized access to the Jenkins management console.
+  reference:
+    - https://www.jenkins.io/doc/book/system-administration/security/
+  tags: exposure,jenkins,panel,unauth
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Jenkins"
+          - "Dashboard"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: jenkins-header
+        regex:
+          - "(?i)jenkins"
