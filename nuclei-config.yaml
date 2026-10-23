@@ -1,0 +1,21 @@
+# Nuclei configuration for cosckoya/nuclei-templates
+templates:
+  - templates/
+
+workflows:
+  - workflows/
+
+severity:
+  - info
+  - low
+  - medium
+  - high
+  - critical
+
+output:
+  - jsonl
+
+rate-limit: 150
+bulk-size: 25
+timeout: 5
+retries: 1

@@ -1,0 +1,12 @@
+id: cosckoya-example-workflow
+
+info:
+  name: Example Nuclei Workflow
+  author: cosckoya
+
+workflow:
+  - template: templates/http/exposed-panels/grafana-exposed.yaml
+    matchers:
+      - type: status
+        status:
+          - 200

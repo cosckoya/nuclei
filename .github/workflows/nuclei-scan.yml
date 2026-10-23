@@ -1,0 +1,27 @@
+name: Nuclei Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Run Nuclei templates
+        run: |
+          nuclei -t templates/ -target https://example.com -jsonl -o results.jsonl || true
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuclei-results
+          path: results.jsonl
