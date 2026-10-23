@@ -1,27 +1,116 @@
-name: Nuclei Scan
+name: Nuclei Security Scan
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 3 * * *'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'templates/**'
+      - 'workflows/**'
+      - 'nuclei-config.yaml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'templates/**'
+      - 'workflows/**'
+      - 'nuclei-config.yaml'
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target URL to scan'
+        required: true
+        default: 'https://example.com'
+      severity:
+        description: 'Minimum severity level'
+        required: true
+        default: 'medium'
+        type: choice
+        options:
+          - info
+          - low
+          - medium
+          - high
+          - critical
 
 jobs:
-  scan:
+  validate:
+    name: Validate Templates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
       - name: Install Nuclei
         run: |
           go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
-      - name: Run Nuclei templates
+      - name: Validate all templates
         run: |
-          nuclei -t templates/ -target https://example.com -jsonl -o results.jsonl || true
+          nuclei -validate -t templates/
 
-      - name: Upload results
+      - name: Validate all workflows
+        run: |
+          nuclei -validate -w workflows/
+
+  scan:
+    name: Nuclei Scan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Update community templates
+        run: |
+          nuclei -ut || true
+
+      - name: Run Nuclei scan
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t templates/ \
+            -w workflows/ \
+            -target ${{ github.event.inputs.target || 'https://example.com' }} \
+            -severity ${{ github.event.inputs.severity || 'medium' }} \
+            -jsonl \
+            -o results.jsonl || true
+
+      - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
           name: nuclei-results
           path: results.jsonl
+          retention-days: 7
+
+      - name: Upload SARIF report (if available)
+        if: always()
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t templates/ \
+            -target ${{ github.event.inputs.target || 'https://example.com' }} \
+            -sarif-export results.sarif || true
+        continue-on-error: true
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true

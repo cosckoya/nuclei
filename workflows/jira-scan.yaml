@@ -1,0 +1,20 @@
+id: cosckoya-workflow-jira-scan
+
+info:
+  name: Jira Security Scan Workflow
+  author: cosckoya
+  severity: medium
+  description: |
+    Conditional workflow that first detects Jira, then runs
+    Jira-specific vulnerability checks only if Jira is detected.
+    Uses matcher-name based conditional execution for precision.
+  tags: workflow,jira,atlassian,conditional
+
+workflows:
+  - template: technologies/atlassian/jira-detect.yaml
+    matchers:
+      - name: jira-detected
+        subtemplates:
+          - tags: jira
+          - template: cves/2024/
+          - template: exposures/panels/

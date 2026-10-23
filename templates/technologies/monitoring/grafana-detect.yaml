@@ -1,0 +1,37 @@
+id: cosckoya-technology-grafana-detect
+
+info:
+  name: Grafana Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects Grafana installation by checking for Grafana-specific
+    headers and response content.
+  reference:
+    - https://grafana.com/
+  tags: technology,grafana,monitoring,detect
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Grafana"
+        part: body
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: grafana-version
+        regex:
+          - "(?i)grafana/([0-9.]+)"
+        group: 1

@@ -1,0 +1,28 @@
+# CODEOWNERS
+
+# Code ownership for cosckoya/nuclei
+
+# Documentation
+/docs/ @atticus
+*.md @atticus
+
+# Templates
+/templates/ @shadow-architect @puck
+*.yaml @shadow-architect
+
+# Workflows
+/workflows/ @shadow-architect @daedalus
+
+# Configuration
+nuclei-config.yaml @daedalus @shadow-architect
+.nuclei-ignore @shadow-architect
+.sops.yaml @daedalus
+
+# CI/CD
+.github/workflows/ @daedalus @rankle
+
+# Security
+SECURITY.md @rankle @shadow
+
+# Everything else
+* @cosckoya

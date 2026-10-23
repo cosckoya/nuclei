@@ -1,0 +1,14 @@
+# .nuclei-ignore - Default template exclusion list for cosckoya/nuclei
+# These templates/tags are excluded by default to avoid noisy scans
+# Override with -include-tags or -include-templates flags
+
+# Tags excluded by default
+tags:
+  - fuzz
+  - dos
+  - misc
+
+# Templates excluded by default
+templates:
+  - templates/http/fuzzing/
+  - templates/http/dast/

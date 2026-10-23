@@ -1,0 +1,18 @@
+id: cosckoya-workflow-wordpress-scan
+
+info:
+  name: WordPress Security Scan Workflow
+  author: cosckoya
+  severity: medium
+  description: |
+    Conditional workflow that first detects WordPress, then runs
+    WordPress-specific vulnerability checks only if WordPress is detected.
+    This reduces scan time and noise by targeting only relevant templates.
+  tags: workflow,wordpress,cms,conditional
+
+workflows:
+  - template: technologies/cms/wordpress-detect.yaml
+    subtemplates:
+      - tags: wordpress
+      - template: exposures/panels/
+      - template: misconfiguration/web/

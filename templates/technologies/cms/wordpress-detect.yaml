@@ -1,0 +1,41 @@
+id: cosckoya-technology-wordpress-detect
+
+info:
+  name: WordPress Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects WordPress CMS installation by checking for common WordPress
+    identifiers in the response body and headers.
+  reference:
+    - https://wordpress.org/
+  tags: technology,wordpress,cms,detect
+  metadata:
+    max-request: 2
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-login.php"
+      - "{{BaseURL}}/wp-admin/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "WordPress"
+          - "wp-login"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+          - 302
+
+    extractors:
+      - type: regex
+        part: body
+        name: wp-version
+        regex:
+          - 'content="WordPress ([0-9.]+)"'
+        group: 1
