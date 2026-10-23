@@ -1,0 +1,46 @@
+id: cosckoya-misconfig-open-redirect
+
+info:
+  name: Open Redirect Detection
+  author: cosckoya
+  severity: medium
+  description: |
+    Detects open redirect vulnerabilities where an application
+    redirects users to external URLs without validation.
+  reference:
+    - https://owasp.org/www-community/attacks/url_redirect_abuse
+  tags: misconfig,open-redirect,web,owasp
+  metadata:
+    max-request: 5
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?url=https://evil.com"
+      - "{{BaseURL}}/?redirect=https://evil.com"
+      - "{{BaseURL}}/?next=https://evil.com"
+      - "{{BaseURL}}/?return=https://evil.com"
+      - "{{BaseURL}}/?goto=https://evil.com"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "evil.com"
+        part: header
+        condition: or
+      - type: status
+        status:
+          - 301
+          - 302
+          - 303
+          - 307
+          - 308
+
+    extractors:
+      - type: regex
+        part: header
+        name: redirect-url
+        regex:
+          - "Location: (.+evil.com.+)"
+        group: 1

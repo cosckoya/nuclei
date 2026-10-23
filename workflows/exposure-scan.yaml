@@ -1,0 +1,16 @@
+id: cosckoya-workflow-exposure-scan
+
+info:
+  name: Exposure Detection Workflow
+  author: cosckoya
+  severity: high
+  description: |
+    Scan workflow focused on detecting exposed panels, files, and
+    configurations that should not be publicly accessible.
+  tags: workflow,exposure,panel,file
+
+workflows:
+  - template: exposures/panels/
+  - template: exposures/files/
+  - tags: exposure
+  - severity: medium,high,critical

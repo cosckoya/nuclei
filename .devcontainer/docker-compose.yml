@@ -1,0 +1,18 @@
+# Docker Compose for development environment
+services:
+  nuclei:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cosckoya/nuclei:dev
+    container_name: nuclei-dev
+    volumes:
+      - ../templates:/nuclei/templates:ro
+      - ../workflows:/nuclei/workflows:ro
+      - nuclei-cache:/root/.nuclei
+    cap_add:
+      - NET_ADMIN
+    command: ["-h"]
+
+volumes:
+  nuclei-cache:

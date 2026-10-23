@@ -1,0 +1,36 @@
+id: cosckoya-technology-iis-detect
+
+info:
+  name: Microsoft IIS Detection
+  author: cosckoya
+  severity: info
+  description: |
+    Detects Microsoft IIS web server by checking response headers.
+  reference:
+    - https://www.iis.net/
+  tags: technology,iis,microsoft,webserver,detect
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Microsoft-IIS"
+        part: header
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: iis-version
+        regex:
+          - "Microsoft-IIS/([0-9.]+)"
+        group: 1

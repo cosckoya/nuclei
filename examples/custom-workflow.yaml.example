@@ -1,0 +1,18 @@
+# Example workflow file for custom scans
+# Copy and customize for your specific needs
+
+id: cosckoya-workflow-custom-example
+
+info:
+  name: Custom Example Workflow
+  author: cosckoya
+  severity: medium
+  description: |
+    Example custom workflow. Replace with your own templates and conditions.
+
+workflows:
+  - template: templates/exposures/panels/
+  - template: templates/exposures/files/
+  - template: templates/cves/2024/
+  - tags: cve
+  - severity: critical,high

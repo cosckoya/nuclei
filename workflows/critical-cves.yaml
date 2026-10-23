@@ -1,0 +1,16 @@
+id: cosckoya-workflow-critical-cves
+
+info:
+  name: Critical CVEs Scan Workflow
+  author: cosckoya
+  severity: critical
+  description: |
+    Scan workflow focused on critical CVEs only. Runs all CVE templates
+    from recent years against the target.
+  tags: workflow,cve,critical,cves
+
+workflows:
+  - template: cves/2024/
+  - template: cves/2025/
+  - tags: cve
+  - severity: critical

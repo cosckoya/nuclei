@@ -1,0 +1,26 @@
+repos:
+  https://github.com/pre-commit/pre-commit-hooks:
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  https://github.com/yordisjuan/pre-commit-yamllint:
+    rev: v0.1.0
+    hooks:
+      - id: yamllint
+
+  https://github.com/projectdiscovery/nuclei:
+    rev: v3.3.0
+    hooks:
+      - id: nuclei-validate
+        args: ["-validate", "-t", "templates/", "-w", "workflows/"]
+
+ci:
+  autofix_prs: false
+  autoupdate_branch: ""
+  autoupdate_schedule: monthly
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
