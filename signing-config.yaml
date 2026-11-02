@@ -1,0 +1,22 @@
+# Nuclei Template Signing Configuration
+# Reference: https://docs.projectdiscovery.io/tools/nuclei/running.md#template-signing
+
+# Template signing key configuration
+signing:
+  private_key: '${NUCLEI_SIGNATURE_PRIVATE_KEY:}'
+  public_key: '${NUCLEI_SIGNATURE_PUBLIC_KEY:}'
+
+# Signature verification settings
+verification:
+  disable_unsigned_templates: false
+  enable_self_contained: false
+
+# Signed templates are stored with cryptographic signatures
+# to ensure integrity and provenance of detection logic
+
+# To sign templates:
+#   export NUCLEI_SIGNATURE_PRIVATE_KEY="your-private-key"
+#   nuclei -sign -t templates/
+
+# To run only signed templates:
+#   nuclei -dut -t templates/  # disable-unsigned-templates

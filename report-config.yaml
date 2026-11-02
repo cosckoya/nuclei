@@ -1,0 +1,55 @@
+# Reporting Module Configuration for Nuclei
+# Integrates with GitHub Issues, Jira, Slack, Elasticsearch, Splunk, etc.
+# Reference: https://docs.projectdiscovery.io/tools/nuclei/running.md#nuclei-reporting
+
+# GitHub Issues integration
+github:
+  owner: cosckoya
+  repo: nuclei
+  token: '${GITHUB_TOKEN:}'
+  project-name: 'DAST Findings'
+  issue-label: 'security,finding'
+  duplicate-issue-check: true
+
+# Jira integration
+jira:
+  username: '${JIRA_USERNAME:}'
+  owner: cosckoya
+  token: '${JIRA_TOKEN:}'
+  project-name: 'DAST Findings'
+  issue-label: 'security'
+  severity-as-label: true
+  duplicate-issue-check: true
+
+# Slack integration
+slack:
+  webhook-url: '${SLACK_WEBHOOK_URL:}'
+  channel: '#security-alerts'
+  username: 'nuclei-dast'
+  icon-emoji: ':shield:'
+
+# Elasticsearch integration
+elasticsearch:
+  url: '${ELASTICSEARCH_URL:}'
+  username: '${ELASTICSEARCH_USERNAME:}'
+  password: '${ELASTICSEARCH_PASSWORD:}'
+  index: 'nuclei-findings'
+
+# Splunk HEC integration
+splunk:
+  hec-url: '${SPLUNK_HEC_URL:}'
+  hec-token: '${SPLUNK_HEC_TOKEN:}'
+  index: 'nuclei'
+  source: 'nuclei-dast'
+  sourcetype: '_json'
+
+# MongoDB integration
+mongodb:
+  url: '${MONGODB_URL:}'
+  database: 'nuclei'
+  collection: 'findings'
+
+# General reporting settings
+template-path: './templates/'
+output-path: './results/'
+format: 'jsonl'
