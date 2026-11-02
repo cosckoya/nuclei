@@ -7,24 +7,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
-- 16 new Nuclei templates across CVEs, exposures, technologies, misconfigurations, and vulnerabilities
-- 5 workflow files including conditional and full-scan workflows
-- `.devcontainer/` for VS Code Codespaces development
-- `.pre-commit-config.yaml` for pre-commit hooks
-- `Dockerfile` and `docker-compose.yml` for containerized scanning
-- `Makefile` with scan, validate, lint, docker targets
-- `scripts/nuclei-scan.sh` wrapper script
-- `examples/` directory with targets and config examples
-- `.github/workflows/validate.yml` for template validation CI
-- `.github/codeql-config.yml` for CodeQL integration
-- `.agentic/` with OpenCode agents, skills, and stack rules
-- `CLAUDE.md` and `CODEOWNERS`
-- `.nuclei-ignore` and `.sops.yaml`
+- `.github/ISSUE_TEMPLATE/feature_request.md` — Feature request template
+- `.github/ISSUE_TEMPLATE/release_request.md` — Release request template
+- `.github/ISSUE_TEMPLATE/security_report.md` — Security report template
+- `.github/RELEASE_TEMPLATE.md` — Release notes template
+- `.github/workflows/release.yml` — Automated release workflow with tag generation
+
+### Changed
+- `.github/PULL_REQUEST_TEMPLATE.md` — Enhanced PR checklist with template details
+- `docs/gitflow.md` — Updated with versioning and release process
+
+## [2.0.0] — 2026-11-02
+
+### Added
+- Complete DAST pipeline with quick/full/dast scan modes
+- 30+ new templates across 10 protocol categories
+- 6 conditional and full-scan workflows
+- Automated template sync from projectdiscovery/nuclei-templates
+- Secret scanning (TruffleHog + Gitleaks) with CI/CD
+- Template signing configuration and verification
+- Monitoring and alerting (Slack, Email, GitHub Issues)
+- OpenAPI/Swagger API security scanning
+- SARIF export to GitHub Code Scanning
+- DevSecOps pipeline guide and documentation suite
+- Auto-merge develop → main workflow
+- GitHub Rulesets for main and develop branch protection
 
 ### Changed
 - Refactored `nuclei-config.yaml` with Nuclei v3 flags
-- Updated `README.md` with modern Nuclei v3 features
-- Updated `docs/gitflow.md` with protection rules
+- Refactored `README.md` with DAST pipeline section and scan modes
+- All templates YAML-validated
+
+## [1.1.0] — 2026-10-23
+
+### Added
+- Modern nuclei-config.yaml with v3 flags (rate-limit, concurrency, project, etc.)
+- `.nuclei-ignore` for default template exclusions
+- `.sops.yaml` for encrypted secrets management
+- `Dockerfile` for containerized scanning
+- `docker-compose.yml` for orchestration
+- `Makefile` with scan, validate, lint, docker targets
+- `CLAUDE.md` for AI agent context
+- `CODEOWNERS` for team ownership
+- `.agentic/` with agents, skills, and stack rules
+- 16 new templates: CVE-2024-45046, CVE-2024-29824, CVE-2024-23692, CVE-2024-3400, CVE-2024-21887, CVE-2025-0001, Jenkins/Grafana panels, S3 public, WordPress/Grafana detection
+- 5 workflows including conditional DAST API scan and full scan
+- CI/CD workflow with validation, SARIF, GitHub Security upload
+- Issue templates: bug_report, template_request
+- README refactor with modern Nuclei v3 features (AI, workflows, profiles, SARIF)
+- Updated docs references
 
 ## [1.0.0] — 2026-10-23
 
