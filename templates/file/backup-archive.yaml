@@ -47,5 +47,5 @@ http:
         part: header
         name: content-type
         regex:
-          - "Content-Type:\s*(.+)"
+          - 'Content-Type:\s*(.+)'
         group: 1

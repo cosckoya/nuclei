@@ -41,5 +41,5 @@ dns:
         part: data
         name: zone-record
         regex:
-          - "(SOA|NS|MX)\s+"
+          - '(SOA|NS|MX)\s+'
         group: 1

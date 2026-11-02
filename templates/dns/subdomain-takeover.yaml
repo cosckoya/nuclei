@@ -44,5 +44,5 @@ dns:
         part: data
         name: cname-target
         regex:
-          - "CNAME\s+(.+)"
+          - 'CNAME\s+(.+)'
         group: 1

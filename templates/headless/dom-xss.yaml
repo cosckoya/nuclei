@@ -49,5 +49,5 @@ headless:
         part: body
         name: xss-payload
         regex:
-          - "alert\(document\.domain\)"
+          - 'alert\(document\.domain\)'
         group: 0

@@ -63,5 +63,5 @@ http:
         part: body
         name: exposed-file
         regex:
-          - "(DB_PASSWORD|API_KEY|SECRET_KEY|DATABASE_URL|\[core\]|<\?php|<repository)"
+          - '(DB_PASSWORD|API_KEY|SECRET_KEY|DATABASE_URL|\[core\]|<\?php|<repository)'
         group: 1

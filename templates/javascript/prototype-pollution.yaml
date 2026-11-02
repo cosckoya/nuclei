@@ -38,5 +38,5 @@ javascript:
         part: body
         name: pollution-pattern
         regex:
-          - "(__proto__|constructor\.prototype|Object\.prototype)"
+          - '(__proto__|constructor\.prototype|Object\.prototype)'
         group: 1
