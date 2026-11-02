@@ -31,3 +31,7 @@ Thumbs.db
 # Temporary
 /tmp/
 .nuclei/
+
+# OpenCode agent configuration (lives in ~/.agentic, not per-project)
+.agentic/
+CLAUDE.md
