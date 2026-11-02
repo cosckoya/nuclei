@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.2.3)'
+        required: true
+        default: ''
+      release-type:
+        description: 'Type of release'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      changelog:
+        description: 'Changelog content'
+        required: false
+        default: ''
+
+env:
+  RELEASE_BRANCH: main
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            TAG="${{ github.event.inputs.version }}"
+          else
+            # Get latest tag
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "Latest tag: $LATEST_TAG"
+
+            # Parse version parts
+            VERSION_WITHOUT_V=${LATEST_TAG#v}
+            MAJOR=$(echo $VERSION_WITHOUT_V | cut -d. -f1)
+            MINOR=$(echo $VERSION_WITHOUT_V | cut -d. -f2)
+            PATCH=$(echo $VERSION_WITHOUT_V | cut -d. -f3)
+
+            # Bump based on release type
+            RELEASE_TYPE="${{ github.event.inputs.release-type }}"
+            case "$RELEASE_TYPE" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+
+            TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ "${{ github.event.inputs.changelog }}" != "" ]; then
+            CHANGELOG="${{ github.event.inputs.changelog }}"
+          else
+            # Generate from commit history since last tag
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -z "$LATEST_TAG" ]; then
+              COMMITS=$(git log --oneline --format="- %s" | head -50)
+            else
+              COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline --format="- %s" | head -50)
+            fi
+            CHANGELOG="## Changes since ${LATEST_TAG:-initial release}
+
+${COMMITS}"
+          fi
+
+          # Escape newlines for GitHub Actions output
+          CHANGELOG_ESCAPED=$(echo "$CHANGELOG" | sed 's/"/\\"/g; s/$/\\n/g' | tr -d '\n')
+          echo "changelog=$CHANGELOG_ESCAPED" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        id: tag
+        run: |
+          git config user.name "cosckoya"
+          git config user.email "cosckoya@proton.me"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}
+${{ steps.changelog.outputs.changelog }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+          echo "tag_name=${{ steps.version.outputs.tag }}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+
+      - name: Update CHANGELOG.md
+        run: |
+          NEW_ENTRY=$(cat <<EOF
+
+## [${{ steps.version.outputs.tag }}] - $(date +%Y-%m-%d)
+
+${{ steps.changelog.outputs.changelog }}
+EOF
+          )
+          # Insert after the [Unreleased] section header
+          sed -i "/## \[Unreleased\]/a${NEW_ENTRY}" CHANGELOG.md
+          git config user.name "cosckoya"
+          git config user.email "cosckoya@proton.me"
+          git add CHANGELOG.md
+          git commit -m "docs: update CHANGELOG for ${{ steps.version.outputs.tag }}" -m "Co-Authored-By: Roy Batty <roy.batty@cosckoya.bot>"
+          git push origin main
