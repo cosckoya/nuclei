@@ -1,0 +1,45 @@
+id: cosckoya-dns-zone-transfer
+
+info:
+  name: DNS Zone Transfer (AXFR)
+  author: cosckoya
+  severity: medium
+  description: |
+    DNS server allows zone transfer (AXFR) requests, potentially
+    exposing the entire DNS zone including internal hostnames and records.
+  reference:
+    - https://owasp.org/www-community/attacks/DNS_Zone_Transfer
+    - https://cwe.mitre.org/data/definitions/200.html
+  tags: dns,axfr,zone-transfer,misconfig,information-disclosure
+  metadata:
+    max-request: 1
+
+dns:
+  - inputs:
+      - data:
+          name: "{{Hostname}}"
+          type: AXFR
+          class: IN
+    host:
+      - "{{Hostname}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SOA"
+          - "NS"
+          - "MX"
+        part: data
+        condition: or
+      - type: status
+        status:
+          - NOERROR
+
+    extractors:
+      - type: regex
+        part: data
+        name: zone-record
+        regex:
+          - "(SOA|NS|MX)\s+"
+        group: 1

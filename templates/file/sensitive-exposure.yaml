@@ -1,0 +1,67 @@
+id: cosckoya-file-sensitive-exposure
+
+info:
+  name: Sensitive File Exposure
+  author: cosckoya
+  severity: medium
+  description: |
+    Detects exposure of sensitive files such as backups, configuration
+    files, source code, and temporary files that should not be public.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/Information_Exposure_Through_Configuration_Files
+    - https://cwe.mitre.org/data/definitions/538.html
+  tags: file,exposure,backup,config,sensitive-file
+  metadata:
+    max-request: 20
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.env"
+      - "{{BaseURL}}/.env.production"
+      - "{{BaseURL}}/.env.development"
+      - "{{BaseURL}}/.env.local"
+      - "{{BaseURL}}/.env.example"
+      - "{{BaseURL}}/.env.bak"
+      - "{{BaseURL}}/.env.old"
+      - "{{BaseURL}}/.git/config"
+      - "{{BaseURL}}/.git/HEAD"
+      - "{{BaseURL}}/.gitignore"
+      - "{{BaseURL}}/web.config"
+      - "{{BaseURL}}/phpinfo.php"
+      - "{{BaseURL}}/info.php"
+      - "{{BaseURL}}/test.php"
+      - "{{BaseURL}}/backup.zip"
+      - "{{BaseURL}}/backup.tar.gz"
+      - "{{BaseURL}}/backup.tar"
+      - "{{BaseURL}}/database.sql"
+      - "{{BaseURL}}/config.php.bak"
+      - "{{BaseURL}}/settings.py.bak"
+      - "{{BaseURL}}/.svn/entries"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "DB_PASSWORD"
+          - "API_KEY"
+          - "SECRET_KEY"
+          - "DATABASE_URL"
+          - "[core]"
+          - "<?php"
+          - "<repository"
+          - "sql dump"
+          - "CREATE TABLE"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: exposed-file
+        regex:
+          - "(DB_PASSWORD|API_KEY|SECRET_KEY|DATABASE_URL|\[core\]|<\?php|<repository)"
+        group: 1

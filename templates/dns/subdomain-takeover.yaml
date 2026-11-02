@@ -1,0 +1,48 @@
+id: cosckoya-dns-subdomain-takeover
+
+info:
+  name: Subdomain Takeover Detection
+  author: cosckoya
+  severity: high
+  description: |
+    Detects potential subdomain takeover vulnerabilities by checking
+    CNAME records pointing to external services that may be unclaimed.
+  reference:
+    - https://owasp.org/www-community/attacks/Subdomain_Takeover
+    - https://cwe.mitre.org/data/definitions/841.html
+  tags: dns,subdomain,takeover,cname,critical
+  metadata:
+    max-request: 1
+
+dns:
+  - inputs:
+      - data:
+          name: "{{Hostname}}"
+          type: CNAME
+          class: IN
+    host:
+      - "{{Hostname}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "github.io"
+          - "herokuapp.com"
+          - "cloudfront.net"
+          - "azurewebsites.net"
+          - "s3.amazonaws.com"
+          - "cloudapp.net"
+        part: data
+        condition: or
+      - type: status
+        status:
+          - NOERROR
+
+    extractors:
+      - type: regex
+        part: data
+        name: cname-target
+        regex:
+          - "CNAME\s+(.+)"
+        group: 1

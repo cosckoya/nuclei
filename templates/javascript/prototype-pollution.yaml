@@ -1,0 +1,42 @@
+id: cosckoya-javascript-prototype-pollution
+
+info:
+  name: JavaScript Prototype Pollution Detection
+  author: cosckoya
+  severity: medium
+  description: |
+    Detects JavaScript prototype pollution vulnerabilities by checking
+    for unsafe object merge operations that can pollute Object.prototype.
+  reference:
+    - https://owasp.org/www-community/attacks/Prototype_Pollution
+    - https://cwe.mitre.org/data/definitions/1321.html
+  tags: javascript,prototype-pollution,client-side,xss
+  metadata:
+    max-request: 1
+
+javascript:
+  - inputs:
+      - data: ""
+    host:
+      - "{{Hostname}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "__proto__"
+          - "constructor.prototype"
+          - "Object.prototype"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: pollution-pattern
+        regex:
+          - "(__proto__|constructor\.prototype|Object\.prototype)"
+        group: 1

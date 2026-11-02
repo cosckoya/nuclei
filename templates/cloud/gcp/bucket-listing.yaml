@@ -1,0 +1,43 @@
+id: cosckoya-cloud-gcp-bucket-listing
+
+info:
+  name: GCP Bucket Public Listing Enabled
+  author: cosckoya
+  severity: high
+  description: |
+    Google Cloud Storage bucket allows public listing of objects,
+    potentially exposing sensitive files and data.
+  reference:
+    - https://cloud.google.com/storage/docs/access-control/making-data-public
+    - https://cwe.mitre.org/data/definitions/732.html
+  tags: cloud,gcp,storage,bucket,misconfig,exposure
+  metadata:
+    max-request: 1
+    verified: true
+    asset-type: cloud-storage
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?prefix="
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ListBucketResult"
+          - "Contents"
+          - "Key"
+        part: body
+        condition: and
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: bucket-name
+        regex:
+          - "<Name>([^<]+)</Name>"
+        group: 1

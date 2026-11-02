@@ -1,0 +1,40 @@
+id: cosckoya-code-go-template-injection
+
+info:
+  name: Go Template Injection Detection
+  author: cosckoya
+  severity: high
+  description: |
+    Detects Go template injection vulnerabilities by checking for
+    template syntax execution in web application responses.
+  reference:
+    - https://owasp.org/www-community/attacks/SSTI
+    - https://cwe.mitre.org/data/definitions/94.html
+  tags: code,go,template-injection,ssti,high
+  metadata:
+    max-request: 1
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?name={{7*7}}"
+      - "{{BaseURL}}/?name=${7*7}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "49"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: template-result
+        regex:
+          - "49"
+        group: 0

@@ -1,0 +1,53 @@
+id: cosckoya-headless-dom-xss
+
+info:
+  name: DOM-based XSS Detection
+  author: cosckoya
+  severity: medium
+  description: |
+    Detects DOM-based cross-site scripting vulnerabilities by analyzing
+    client-side JavaScript execution and unsafe DOM manipulation.
+  reference:
+    - https://owasp.org/www-community/attacks/xss/
+    - https://cwe.mitre.org/data/definitions/79.html
+  tags: headless,xss,dom,client-side,browser
+  metadata:
+    max-request: 1
+
+headless:
+  - steps:
+      - step: navigate
+        data:
+          url: "{{BaseURL}}/?q=<script>alert(document.domain)</script>"
+      - step: waitforload
+        data:
+          timeout: 5000
+      - step: evaluatejs
+        data:
+          script: |
+            window.alertCalled = false;
+            const originalAlert = window.alert;
+            window.alert = function(msg) {
+              window.alertCalled = true;
+              window.alertResult = msg;
+              return originalAlert.apply(this, arguments);
+            };
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "alertCalled"
+        part: body
+        condition: and
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: xss-payload
+        regex:
+          - "alert\(document\.domain\)"
+        group: 0
