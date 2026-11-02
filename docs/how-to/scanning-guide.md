@@ -49,19 +49,19 @@ nuclei -c nuclei-config.yaml -t templates/ -severity critical,high -target https
 nuclei -c nuclei-config.yaml -t templates/ -tags wordpress -target https://example.com
 ```
 
-### Scan using the Makefile
+### Scan using just
 
 ```bash
-make scan TARGET=https://example.com
-make scan-severity SEVERITY=critical TARGET=https://example.com
-make scan-tags TAGS=cve TARGET=https://example.com
+just scan TARGET=https://example.com
+just scan-severity SEVERITY=critical TARGET=https://example.com
+just scan-tags TAGS=cve TARGET=https://example.com
 ```
 
 ### Scan using Docker
 
 ```bash
-make docker-build
-make docker-scan TARGET=https://example.com
+just docker-build
+just docker-scan TARGET=https://example.com
 ```
 
 ### Scan using the wrapper script

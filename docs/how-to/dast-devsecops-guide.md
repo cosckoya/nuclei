@@ -109,19 +109,19 @@ nuclei -l openapi.yaml -im openapi -ro -target https://api.example.com
 
 ```bash
 # Validate templates
-make validate
+just validate
 
 # Run quick scan
-make scan TARGET=https://example.com
+just scan TARGET=https://example.com
 
 # Run full scan with workflows
-make scan-all TARGET=https://example.com
+just scan-all TARGET=https://example.com
 
 # Run DAST fuzzing
-make scan-dast TARGET=https://example.com
+just scan-dast TARGET=https://example.com
 
 # Docker scan
-make docker-scan TARGET=https://example.com
+just docker-scan TARGET=https://example.com
 ```
 
 ## Related Documents
