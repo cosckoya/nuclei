@@ -1,0 +1,47 @@
+id: cosckoya-cloud-aws-metadata-ssrf
+
+info:
+  name: AWS Metadata Service SSRF (IMDSv1)
+  author: cosckoya
+  severity: critical
+  description: |
+    AWS Instance Metadata Service (IMDSv1) is accessible, potentially
+    exposing temporary credentials and instance information via SSRF.
+    IMDSv2 should be enforced to prevent this attack.
+  reference:
+    - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
+    - https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+  tags: cloud,aws,ssrf,metadata,imds,critical
+  metadata:
+    max-request: 1
+    verified: true
+    asset-type: cloud-infrastructure
+
+http:
+  - method: GET
+    path:
+      - "http://169.254.169.254/latest/meta-data/"
+      - "http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+      - "http://169.254.169.254/latest/user-data/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ami-id"
+          - "instance-id"
+          - "local-hostname"
+          - "placement"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: metadata-key
+        regex:
+          - "(ami-id|instance-id|local-hostname)"
+        group: 1

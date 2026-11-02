@@ -1,0 +1,42 @@
+id: cosckoya-code-java-deserialization
+
+info:
+  name: Java Deserialization Detection
+  author: cosckoya
+  severity: critical
+  description: |
+    Detects Java deserialization vulnerabilities by checking for
+    serialized object signatures in HTTP responses and headers.
+  reference:
+    - https://owasp.org/www-community/vulnerabilities/deserialization
+    - https://cwe.mitre.org/data/definitions/502.html
+  tags: code,java,deserialization,rce,critical
+  metadata:
+    max-request: 1
+    verified: true
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "rO0AB"
+          - "aced"
+          - "sr"
+        part: header
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: serial-signature
+        regex:
+          - "(rO0AB|aced)"
+        group: 1

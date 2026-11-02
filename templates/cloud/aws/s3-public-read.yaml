@@ -1,0 +1,44 @@
+id: cosckoya-cloud-aws-s3-public-read
+
+info:
+  name: AWS S3 Bucket Public Read Access
+  author: cosckoya
+  severity: high
+  description: |
+    AWS S3 bucket is configured with public read access, potentially
+    exposing sensitive data to unauthorized users on the internet.
+  reference:
+    - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+    - https://cwe.mitre.org/data/definitions/732.html
+  tags: cloud,aws,s3,misconfig,exposure
+  metadata:
+    max-request: 1
+    verified: true
+    asset-type: cloud-storage
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "AccessDenied"
+          - "ListBucketResult"
+          - "<Name>"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+          - 403
+
+    extractors:
+      - type: regex
+        part: body
+        name: bucket-name
+        regex:
+          - "<Name>([^<]+)</Name>"
+        group: 1

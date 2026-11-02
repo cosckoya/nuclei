@@ -1,0 +1,18 @@
+id: cosckoya-workflow-dast-full
+
+info:
+  name: DAST Full Scan Workflow
+  author: cosckoya
+  severity: critical
+  description: |
+    Comprehensive DAST workflow that runs all fuzzing templates
+    against the target. Includes SQL injection, XSS, path traversal,
+    command injection, and SSRF fuzzing with aggression levels.
+  tags: workflow,dast,full-scan,fuzzing
+
+workflows:
+  - template: dast/sql-injection-fuzz.yaml
+  - template: dast/xss-fuzz.yaml
+  - template: dast/path-traversal-fuzz.yaml
+  - template: dast/command-injection-fuzz.yaml
+  - template: dast/ssrf-fuzz.yaml

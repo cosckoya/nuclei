@@ -9,6 +9,15 @@ docs/_build/
 site/
 *.log
 
+# Scan results
+results/
+*.sarif
+*.md-results
+
+# DAST output
+nuclei-report*
+output/
+
 # OS
 .DS_Store
 Thumbs.db

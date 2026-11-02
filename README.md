@@ -66,14 +66,41 @@ nuclei -list targets.txt -ai "Detect stack traces in error responses"
 | Directory | Contents |
 |-----------|----------|
 | `templates/cves/` | CVE vulnerability templates (2024, 2025, ...) |
+| `templates/dast/` | DAST fuzzing templates (SQLi, XSS, SSRF, etc.) |
+| `templates/cloud/` | Cloud misconfigurations (AWS, Azure, GCP) |
 | `templates/exposures/` | Exposed panels and services |
-| `templates/misconfiguration/` | Cloud and web misconfigurations |
+| `templates/dns/` | DNS zone transfer, subdomain takeover |
+| `templates/ssl/` | SSL/TLS weak ciphers, certificate expiry |
+| `templates/file/` | Sensitive file and backup exposure |
+| `templates/headless/` | Browser-based detection (DOM XSS) |
+| `templates/javascript/` | Client-side JS vulnerabilities |
+| `templates/code/` | Go/Java code-level detection |
+| `templates/misconfiguration/` | Web misconfigurations |
 | `templates/technologies/` | CMS and service detection |
 | `workflows/` | Conditional and chained scan workflows |
 | `docs/` | Diátaxis documentation suite |
 | `.github/workflows/` | CI/CD scanning pipeline |
 
 ### Example template
+
+```yaml
+id: cosckoya-dast-sql-injection-fuzz
+info:
+  name: DAST SQL Injection Fuzzing
+  author: cosckoya
+  severity: high
+  description: DAST fuzzing for SQL injection detection
+  tags: dast,fuzz,sqli,dynamic
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1'"
+    matchers:
+      - type: word
+        words: ["sql syntax"]
+        part: body
+```
+
 
 ```yaml
 id: cosckoya-cve-2024-45046
@@ -105,6 +132,11 @@ http:
 | Write a template (YAML schema) | [docs/reference/template-authoring.md](docs/reference/template-authoring.md) |
 | Learn the design rationale | [docs/explanation/design-decisions.md](docs/explanation/design-decisions.md) |
 | Understand branching & PRs | [docs/gitflow.md](docs/gitflow.md) |
+| Run DAST scans | [docs/how-to/scanning-guide.md](docs/how-to/scanning-guide.md) |
+| Scan APIs (OpenAPI) | [docs/how-to/api-scanning-guide.md](docs/how-to/api-scanning-guide.md) |
+| DevSecOps pipeline | [docs/how-to/dast-devsecops-guide.md](docs/how-to/dast-devsecops-guide.md) |
+| CI/CD pipeline setup | [docs/how-to/ci-cd-guide.md](docs/how-to/ci-cd-guide.md) |
+| Security scanning tutorial | [docs/tutorials/security-scanning.md](docs/tutorials/security-scanning.md) |
 
 ---
 
@@ -127,6 +159,33 @@ This project supports the latest Nuclei engine capabilities:
 | **Reporting module** | `-rc` | Auto-create GitHub/Jira tickets |
 
 ---
+
+## 🔄 DAST Pipeline (DevSecOps)
+
+This repository is designed as a daily DAST tool for DevSecOps teams:
+
+| Pipeline | Workflow | Trigger |
+|----------|----------|---------|
+| **DAST Security Scan** | `.github/workflows/dast-pipeline.yml` | Push, PR, Schedule, Manual |
+| **Template Validation** | `.github/workflows/validate.yml` | Push, PR |
+| **Template Sync** | `.github/workflows/sync-templates.yml` | Weekly (Sunday), Manual |
+| **Secret Scanning** | `.github/workflows/secret-scan.yml` | Push, PR, Schedule |
+
+### Scan Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **Quick** | Critical/High severity only | Every push to main/develop |
+| **Full** | All templates + workflows | Daily scheduled scan |
+| **DAST** | Fuzzing templates (-dast) | On-demand security testing |
+
+### Output Formats
+
+| Format | Flag | Purpose |
+|--------|------|---------|
+| JSONL | `-jsonl -o results.jsonl` | Machine-readable findings |
+| SARIF | `-sarif-export results.sarif` | GitHub Security code scanning |
+| Markdown | `-markdown-export report/` | Human-readable reports |
 
 ## 🤝 Contributing
 

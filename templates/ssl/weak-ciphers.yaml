@@ -1,0 +1,43 @@
+id: cosckoya-ssl-weak-ciphers
+
+info:
+  name: Weak SSL/TLS Cipher Suites
+  author: cosckoya
+  severity: medium
+  description: |
+    Server supports weak SSL/TLS cipher suites that may allow
+    decryption of sensitive traffic or man-in-the-middle attacks.
+  reference:
+    - https://cwe.mitre.org/data/definitions/327.html
+    - https://wiki.mozilla.org/Security/Server_Side_TLS
+  tags: ssl,tls,cipher,weak-crypto,misconfig
+  metadata:
+    max-request: 1
+
+ssl:
+  - inputs:
+      - data: ""
+    host:
+      - "{{Hostname}}:443"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+          - "TLS_RSA_WITH_RC4_128_SHA"
+          - "TLS_RSA_WITH_DES_CBC_SHA"
+          - "TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA"
+        part: data
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: data
+        name: weak-cipher
+        regex:
+          - "(TLS_RSA_WITH_3DES|TLS_RSA_WITH_RC4|TLS_RSA_WITH_DES|TLS_DHE_RSA_WITH_3DES)"
+        group: 1

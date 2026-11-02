@@ -1,0 +1,43 @@
+id: cosckoya-cloud-azure-blob-public
+
+info:
+  name: Azure Blob Storage Public Access
+  author: cosckoya
+  severity: high
+  description: |
+    Azure Blob Storage container is publicly accessible, potentially
+    exposing stored files and data to unauthorized users.
+  reference:
+    - https://learn.microsoft.com/en-us/azure/storage/blobs/anonymous-read-access-configure
+    - https://cwe.mitre.org/data/definitions/732.html
+  tags: cloud,azure,blob,storage,misconfig,exposure
+  metadata:
+    max-request: 1
+    verified: true
+    asset-type: cloud-storage
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?restype=container&comp=list"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Blobs"
+          - "Container"
+          - "Name"
+        part: body
+        condition: and
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: container-name
+        regex:
+          - "<Name>([^<]+)</Name>"
+        group: 1
