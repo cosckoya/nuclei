@@ -2,8 +2,6 @@
 # Modern Nuclei project automation (October 2026)
 # Replaces Makefile with a more readable, modern task runner
 
-set dotenv-load
-
 nuclei := "nuclei"
 target := "https://example.com"
 templates_dir := "templates"
