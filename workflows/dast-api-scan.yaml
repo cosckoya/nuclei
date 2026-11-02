@@ -1,0 +1,40 @@
+id: cosckoya-workflow-dast-api
+
+info:
+  name: DAST API Security Scan Workflow
+  author: cosckoya
+  severity: high
+  description: |
+    Conditional DAST workflow that first detects API technologies,
+    then runs API-specific fuzzing checks (SQLi, XSS, SSRF, command
+    injection) only when API endpoints are detected.
+  tags: workflow,dast,api,conditional,fuzzing
+
+workflows:
+  - template: technologies/webservers/apache-detect.yaml
+    matchers:
+      - name: apache-detected
+        subtemplates:
+          - tags: dast
+          - template: dast/sql-injection-fuzz.yaml
+          - template: dast/xss-fuzz.yaml
+          - template: dast/ssrf-fuzz.yaml
+  - template: technologies/webservers/nginx-detect.yaml
+    matchers:
+      - name: nginx-detected
+        subtemplates:
+          - tags: dast
+          - template: dast/command-injection-fuzz.yaml
+          - template: dast/path-traversal-fuzz.yaml
+  - template: technologies/cms/wordpress-detect.yaml
+    matchers:
+      - name: wordpress-detected
+        subtemplates:
+          - tags: wordpress
+          - template: dast/sql-injection-fuzz.yaml
+          - template: dast/xss-fuzz.yaml
+  - template: dast/sql-injection-fuzz.yaml
+  - template: dast/xss-fuzz.yaml
+  - template: dast/path-traversal-fuzz.yaml
+  - template: dast/command-injection-fuzz.yaml
+  - template: dast/ssrf-fuzz.yaml

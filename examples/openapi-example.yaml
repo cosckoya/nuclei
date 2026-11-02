@@ -1,0 +1,44 @@
+# OpenAPI / Swagger API Security Scanning Guide
+
+# This file provides example OpenAPI specifications for API DAST scanning
+# using Nuclei v3.2+ OpenAPI input mode.
+
+openapi: 3.0.0
+info:
+  title: Example API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+paths:
+  /users:
+    get:
+      summary: List users
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+  /login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
