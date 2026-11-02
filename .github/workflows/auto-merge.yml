@@ -1,0 +1,56 @@
+name: Auto-merge develop → main
+
+on:
+  push:
+    branches: [develop]
+  workflow_run:
+    workflows:
+      - "DAST Security Scan"
+      - "Template Validation"
+      - "Secret Scanning"
+    types: [completed]
+    branches: [develop]
+
+jobs:
+  auto-merge:
+    if: >
+      github.event_name == 'push' ||
+      (github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Check if develop is ahead of main
+        id: diff
+        run: |
+          git fetch origin main
+          if git diff --quiet origin/main..origin/develop; then
+            echo "ahead=false" >> $GITHUB_OUTPUT
+          else
+            echo "ahead=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-merge develop into main
+        if: steps.diff.outputs.ahead == 'true'
+        run: |
+          git config user.name "cosckoya"
+          git config user.email "cosckoya@proton.me"
+          git checkout -b auto-merge/develop-to-main
+          git merge --squash origin/develop
+          git commit -m "chore: auto-merge develop into main (squash)" -m "Co-Authored-By: Roy Batty <roy.batty@cosckoya.bot>"
+          git push origin auto-merge/develop-to-main
+          gh pr create --base main --head auto-merge/develop-to-main \
+            --title "chore: auto-merge develop into main" \
+            --body "Automated squash merge after successful CI checks." > /tmp/pr_url.txt 2>&1 || true
+          PR_URL=$(cat /tmp/pr_url.txt | grep -o 'https://github.com/.*/pull/[0-9]*' | head -1)
+          if [ -n "$PR_URL" ]; then
+            PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
+            gh pr merge --auto --squash "$PR_NUMBER"
+          fi

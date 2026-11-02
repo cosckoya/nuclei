@@ -12,16 +12,47 @@ This document describes the branching model, pull request workflow, release proc
 | `release/*` | Release candidate stabilization (version bump, changelog). | ❌ No | ✅ Yes (after merge) |
 | `hotfix/*` | Critical fixes applied directly to `main`. | ❌ No | ✅ Yes (after merge) |
 
-## Protection Rules
+## Protection Rules (GitHub Rulesets)
 
-Both `main` and `develop` are protected with:
+Both `main` and `develop` are protected with **GitHub Rulesets**:
 
+### Ruleset: `main-protection`
 - Required PR reviews: 1
 - Force pushes: Disabled
 - Branch deletions: Disabled
 - Required linear history: Enabled
-- Admins enforced: Yes
+- Required status checks: `validate`, `lint`, `scan-quick`, `secret-scan`
 - Required conversation resolution: Yes
+- Allowed merge methods: Squash only
+- Admins enforced: Yes
+
+### Ruleset: `develop-protection`
+- Required PR reviews: 1
+- Force pushes: Disabled
+- Branch deletions: Disabled
+- Required linear history: Enabled
+- Required status checks: `validate`, `lint`, `secret-scan`
+- Required conversation resolution: Yes
+- Allowed merge methods: Squash only
+- Admins enforced: Yes
+
+## Required Status Checks
+
+| Check | Workflow | Required On |
+|-------|----------|-------------|
+| `validate` | `.github/workflows/validate.yml` | main, develop |
+| `lint` | `.github/workflows/validate.yml` | main, develop |
+| `scan-quick` | `.github/workflows/dast-pipeline.yml` | main, develop |
+| `secret-scan` | `.github/workflows/secret-scan.yml` | main, develop |
+
+## Auto-Merge: develop → main
+
+When all required status checks pass on `develop`, the branch is automatically merged into `main` via **squash merge**. This is handled by `.github/workflows/auto-merge.yml`:
+
+- Triggered on push to `develop`
+- Triggered on completion of `DAST Security Scan`, `Template Validation`, or `Secret Scanning` workflows
+- Creates a temporary PR and auto-merges with squash strategy
+- No manual intervention required
 
 ## Branch Naming Conventions
 
@@ -61,11 +92,11 @@ Allowed prefixes: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `security`
 git push -u origin feature/cve-2024-45046-template
 ```
 
-Open a PR targeting `develop` (or `main` for hotfixes).
+Open a PR targeting `develop` (or `main` for hotfixes). Use the PR template at `.github/PULL_REQUEST_TEMPLATE.md`.
 
 ### 4. Merge
 
-PRs are merged into `develop` via **squash merge** only. After release, `develop` is merged into `main` via squash merge and tagged.
+PRs are merged into `develop` via **squash merge** only. Once all required status checks pass, `develop` is automatically merged into `main` via the auto-merge workflow and tagged.
 
 ## Release Process
 
