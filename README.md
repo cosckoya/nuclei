@@ -19,6 +19,10 @@ Think of it as a locksmith's toolkit — each template is a precision pick for a
 
 ## 🚀 Quick Start
 
+> **No cloud account required.** All scanning runs locally with your own templates.
+> ProjectDiscovery Cloud (PDCP) is optional and only needed for AI template
+> generation (`-ai` flag) and cloud dashboard uploads.
+
 ### 1. Install Nuclei (Go ≥ 1.27.3)
 
 ```bash
@@ -51,9 +55,13 @@ nuclei -c nuclei-config.yaml -t templates/ -severity critical,high -target https
 nuclei -c nuclei-config.yaml -t templates/ -tags wordpress -target https://example.com
 ```
 
-### 4. Use AI-powered template generation (Nuclei v3)
+### 4. Use AI-powered template generation (Nuclei v3) — Optional
+
+> ⚠️ This feature requires a ProjectDiscovery Cloud Platform (PDCP) API key.
+> The core scanning functionality does **not** require any cloud account.
 
 ```bash
+# Only needed if you want AI template generation
 nuclei -auth  # Configure your ProjectDiscovery API key
 nuclei -list targets.txt -ai "Find exposed admin panels"
 nuclei -list targets.txt -ai "Detect stack traces in error responses"
@@ -146,7 +154,7 @@ This project supports the latest Nuclei engine capabilities:
 
 | Feature | Flag | Use Case |
 |---------|------|----------|
-| **AI template generation** | `-ai` | Generate templates from natural language |
+| **AI template generation** | `-ai` | Generate templates from natural language (requires PDCP API key) |
 | **Template profiles** | `-tp` | Reusable scan configurations |
 | **Conditional workflows** | `-w` | Chain templates based on detection |
 | **Template signing** | `-sign` | Cryptographically sign templates |

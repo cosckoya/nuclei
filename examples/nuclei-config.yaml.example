@@ -53,3 +53,8 @@ project: true
 
 # Follow redirects
 follow-redirects: true
+
+# Cloud integration (disabled - no PDCP API key needed)
+dashboard: false
+cloud-upload: false
+disable-cloud-upload-wrn: true
