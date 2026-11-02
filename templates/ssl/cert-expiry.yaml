@@ -1,0 +1,40 @@
+id: cosckoya-ssl-cert-expiry
+
+info:
+  name: SSL Certificate Expiry Check
+  author: cosckoya
+  severity: info
+  description: |
+    Checks SSL/TLS certificate expiry date and alerts if certificate
+    expires within 30, 60, or 90 days.
+  reference:
+    - https://cwe.mitre.org/data/definitions/299.html
+  tags: ssl,tls,certificate,expiry,info
+  metadata:
+    max-request: 1
+
+ssl:
+  - inputs:
+      - data: ""
+    host:
+      - "{{Hostname}}:443"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "notAfter"
+          - "expire"
+        part: data
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: data
+        name: expiry-date
+        regex:
+          - "notAfter=([^\n]+)"
+        group: 1

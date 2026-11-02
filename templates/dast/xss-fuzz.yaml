@@ -1,0 +1,57 @@
+id: cosckoya-dast-xss-fuzz
+
+info:
+  name: DAST XSS Fuzzing
+  author: cosckoya
+  severity: medium
+  description: |
+    DAST fuzzing template for cross-site scripting detection. Tests
+    multiple XSS payloads against input parameters to detect reflected
+    and stored XSS vulnerabilities.
+  reference:
+    - https://owasp.org/www-community/attacks/xss/
+    - https://cwe.mitre.org/data/definitions/79.html
+  tags: dast,fuzz,xss,reflected,dynamic
+  metadata:
+    max-request: 8
+    verified: true
+    fuzz-type: parameter
+    fuzz-aggression: medium
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?q=<script>alert(1)</script>"
+      - "{{BaseURL}}/?search=<img src=x onerror=alert(1)>"
+      - "{{BaseURL}}/?name=<svg onload=alert(1)>"
+      - "{{BaseURL}}/?input=<body onload=alert(1)>"
+      - "{{BaseURL}}/?q=<iframe src=javascript:alert(1)>"
+      - "{{BaseURL}}/?q=<details open ontoggle=alert(1)>"
+      - "{{BaseURL}}/?q=<math><svg><x:script xmlns:x='http://www.w3.org/1999/xhtml'>alert(1)</x:script>"
+      - "{{BaseURL}}/?q=<svg><animate onbegin=alert(1) attributeName=x dur=1s>"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<script>alert(1)</script>"
+          - "<img src=x onerror=alert(1)>"
+          - "<svg onload=alert(1)>"
+          - "<body onload=alert(1)>"
+          - "<iframe src=javascript:alert(1)>"
+          - "<details open ontoggle=alert(1)>"
+          - "<x:script"
+          - "ontoggle=alert(1)"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: xss-payload
+        regex:
+          - '(alert\(1\))'
+        group: 1

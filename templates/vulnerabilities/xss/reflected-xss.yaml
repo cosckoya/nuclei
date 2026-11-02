@@ -42,5 +42,5 @@ http:
         part: body
         name: xss-payload
         regex:
-          - "(alert\(1\))"
+          - '(alert\(1\))'
         group: 1

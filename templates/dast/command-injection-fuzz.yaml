@@ -1,0 +1,53 @@
+id: cosckoya-dast-command-injection-fuzz
+
+info:
+  name: DAST Command Injection Fuzzing
+  author: cosckoya
+  severity: critical
+  description: |
+    DAST fuzzing template for command injection detection. Tests multiple
+    OS command injection payloads against input parameters to detect
+    remote code execution vulnerabilities.
+  reference:
+    - https://owasp.org/www-community/attacks/Command_Injection
+    - https://cwe.mitre.org/data/definitions/78.html
+  tags: dast,fuzz,command-injection,rce,critical
+  metadata:
+    max-request: 8
+    verified: true
+    fuzz-type: parameter
+    fuzz-aggression: medium
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?cmd=whoami"
+      - "{{BaseURL}}/?exec=whoami"
+      - "{{BaseURL}}/?run=whoami"
+      - "{{BaseURL}}/?system=whoami"
+      - "{{BaseURL}}/?passthru=whoami"
+      - "{{BaseURL}}/?cmd=id"
+      - "{{BaseURL}}/?exec=id"
+      - "{{BaseURL}}/?run=id"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+          - "groups="
+          - "root"
+        part: body
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: command-output
+        regex:
+          - "(uid=|gid=|groups=)"
+        group: 0

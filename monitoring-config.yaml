@@ -1,0 +1,68 @@
+# DAST Monitoring and Alerting Configuration
+# Integrates Nuclei scan results with monitoring and alerting systems
+
+# Alert thresholds
+alerts:
+  critical_findings:
+    enabled: true
+    threshold: 0
+    channels:
+      - slack
+      - github-issues
+      - email
+  high_findings:
+    enabled: true
+    threshold: 0
+    channels:
+      - slack
+      - github-issues
+  medium_findings:
+    enabled: true
+    threshold: 5
+    channels:
+      - slack
+  low_findings:
+    enabled: false
+    threshold: 0
+
+# Slack alerting
+slack:
+  webhook_url: '${SLACK_WEBHOOK_URL:}'
+  channel: '#security-alerts'
+  username: 'nuclei-dast'
+  icon_emoji: ':shield:'
+
+# Email alerting
+email:
+  smtp_host: '${SMTP_HOST:}'
+  smtp_port: '${SMTP_PORT:587}'
+  smtp_username: '${SMTP_USERNAME:}'
+  smtp_password: '${SMTP_PASSWORD:}'
+  from: 'nuclei-dast@cosckoya.com'
+  to:
+    - 'security@cosckoya.com'
+
+# GitHub Issues alerting
+github_issues:
+  repo: 'cosckoya/nuclei'
+  label: 'security-finding'
+  auto_create: true
+  auto_close_on_fix: true
+
+# Scheduled scan times
+scans:
+  quick_daily:
+    cron: '0 2 * * *'  # Daily at 02:00 UTC
+    severity: 'critical,high'
+    targets:
+      - '${DAST_TARGET_QUICK:}'
+  full_weekly:
+    cron: '0 3 * * 0'  # Weekly Sunday at 03:00 UTC
+    severity: 'critical,high,medium'
+    targets:
+      - '${DAST_TARGET_FULL:}'
+  dast_monthly:
+    cron: '0 4 1 * *'  # Monthly 1st at 04:00 UTC
+    severity: 'critical,high,medium'
+    targets:
+      - '${DAST_TARGET_DAST:}'

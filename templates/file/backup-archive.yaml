@@ -1,0 +1,51 @@
+id: cosckoya-file-backup-archive
+
+info:
+  name: Backup Archive Exposure
+  author: cosckoya
+  severity: high
+  description: |
+    Detects publicly accessible backup archives (.zip, .tar.gz, .tar,
+    .bak) that may contain source code, databases, or configuration files.
+  reference:
+    - https://owasp.org/www-community/attacks/Path_Traversal
+    - https://cwe.mitre.org/data/definitions/538.html
+  tags: file,backup,archive,exposure,critical
+  metadata:
+    max-request: 10
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/backup.zip"
+      - "{{BaseURL}}/backup.tar.gz"
+      - "{{BaseURL}}/backup.tar"
+      - "{{BaseURL}}/site-backup.zip"
+      - "{{BaseURL}}/www-backup.tar.gz"
+      - "{{BaseURL}}/database-backup.sql.zip"
+      - "{{BaseURL}}/config-backup.tar.gz"
+      - "{{BaseURL}}/full-backup.zip"
+      - "{{BaseURL}}/backup-2024.zip"
+      - "{{BaseURL}}/backup-2025.zip"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "PK"
+          - "application/zip"
+          - "application/x-tar"
+          - "application/gzip"
+        part: header
+        condition: or
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: header
+        name: content-type
+        regex:
+          - 'Content-Type:\s*(.+)'
+        group: 1
