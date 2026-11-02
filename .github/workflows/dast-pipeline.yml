@@ -1,0 +1,269 @@
+name: DAST Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target URL/host to scan'
+        required: true
+        default: 'https://staging.example.com'
+      scan_type:
+        description: 'Scan type'
+        required: true
+        type: choice
+        options:
+          - quick
+          - full
+          - dast
+        default: 'quick'
+      severity:
+        description: 'Minimum severity to fail on'
+        required: true
+        type: choice
+        options:
+          - critical
+          - high
+          - medium
+          - low
+          - info
+        default: 'high'
+
+env:
+  NUCLEI_VERSION: 'v3'
+  NUCLEI_TEMPLATES_DIR: './templates'
+  NUCLEI_WORKFLOWS_DIR: './workflows'
+  RESULTS_DIR: './results'
+
+jobs:
+  validate:
+    name: Validate Templates & Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Validate templates
+        run: |
+          nuclei -validate -t ${{ env.NUCLEI_TEMPLATES_DIR }}
+
+      - name: Validate workflows
+        run: |
+          nuclei -validate -w ${{ env.NUCLEI_WORKFLOWS_DIR }}
+
+      - name: Lint YAML files
+        run: |
+          find ${{ env.NUCLEI_TEMPLATES_DIR }} ${{ env.NUCLEI_WORKFLOWS_DIR }} -name "*.yaml" -exec python3 -c "
+import yaml, sys
+with open(sys.argv[1]) as f:
+    yaml.safe_load(f)
+" {} \;
+
+  scan-quick:
+    name: Quick DAST Scan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.scan_type == 'quick')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Run Nuclei quick scan
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t ${{ env.NUCLEI_TEMPLATES_DIR }} \
+            -w ${{ env.NUCLEI_WORKFLOWS_DIR }}/critical-cves.yaml \
+            -severity critical,high \
+            -jsonl \
+            -o ${{ env.RESULTS_DIR }}/quick-scan.jsonl || true
+
+      - name: Upload quick scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuclei-quick-results
+          path: ${{ env.RESULTS_DIR }}/quick-scan.jsonl
+          retention-days: 7
+
+      - name: Check for critical findings
+        if: always()
+        run: |
+          if [ -f ${{ env.RESULTS_DIR }}/quick-scan.jsonl ]; then
+            COUNT=$(wc -l < ${{ env.RESULTS_DIR }}/quick-scan.jsonl || echo 0)
+            echo "Critical/High findings found: $COUNT"
+            if [ "$COUNT" -gt 0 ]; then
+              echo "::error::DAST quick scan found $COUNT critical/high findings"
+            fi
+          fi
+
+  scan-full:
+    name: Full DAST Scan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.scan_type == 'full')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Update community templates
+        run: |
+          nuclei -ut || true
+
+      - name: Run Nuclei full scan
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t ${{ env.NUCLEI_TEMPLATES_DIR }} \
+            -w ${{ env.NUCLEI_WORKFLOWS_DIR }}/full-scan.yaml \
+            -severity ${{ github.event.inputs.severity || 'medium' }} \
+            -jsonl \
+            -o ${{ env.RESULTS_DIR }}/full-scan.jsonl || true
+
+      - name: Upload full scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuclei-full-results
+          path: ${{ env.RESULTS_DIR }}/full-scan.jsonl
+          retention-days: 30
+
+      - name: Export SARIF for GitHub Security
+        if: always()
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t ${{ env.NUCLEI_TEMPLATES_DIR }} \
+            -w ${{ env.NUCLEI_WORKFLOWS_DIR }}/full-scan.yaml \
+            -severity ${{ github.event.inputs.severity || 'medium' }} \
+            -sarif-export ${{ env.RESULTS_DIR }}/full-scan.sarif || true
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.RESULTS_DIR }}/full-scan.sarif
+          category: nuclei-full-scan
+        continue-on-error: true
+
+  scan-dast:
+    name: DAST Fuzzing Scan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.scan_type == 'dast'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.27.3'
+
+      - name: Install Nuclei
+        run: |
+          go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+      - name: Run Nuclei DAST fuzzing scan
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t ${{ env.NUCLEI_TEMPLATES_DIR }} \
+            -w ${{ env.NUCLEI_WORKFLOWS_DIR }}/full-scan.yaml \
+            -dast \
+            -fa medium \
+            -severity critical,high,medium \
+            -jsonl \
+            -o ${{ env.RESULTS_DIR }}/dast-scan.jsonl || true
+
+      - name: Upload DAST scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuclei-dast-results
+          path: ${{ env.RESULTS_DIR }}/dast-scan.jsonl
+          retention-days: 30
+
+      - name: Export DAST SARIF
+        if: always()
+        run: |
+          nuclei \
+            -c nuclei-config.yaml \
+            -t ${{ env.NUCLEI_TEMPLATES_DIR }} \
+            -w ${{ env.NUCLEI_WORKFLOWS_DIR }}/full-scan.yaml \
+            -dast \
+            -fa medium \
+            -severity critical,high,medium \
+            -sarif-export ${{ env.RESULTS_DIR }}/dast-scan.sarif || true
+
+      - name: Upload DAST SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.RESULTS_DIR }}/dast-scan.sarif
+          category: nuclei-dast-scan
+        continue-on-error: true
+
+  report:
+    name: Generate Scan Report
+    needs: [scan-quick, scan-full, scan-dast]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ env.RESULTS_DIR }}
+
+      - name: Generate summary report
+        run: |
+          echo "# DAST Scan Report" > ${{ env.RESULTS_DIR }}/report.md
+          echo "" >> ${{ env.RESULTS_DIR }}/report.md
+          echo "## Scan Date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> ${{ env.RESULTS_DIR }}/report.md
+          echo "" >> ${{ env.RESULTS_DIR }}/report.md
+          echo "### Results Summary" >> ${{ env.RESULTS_DIR }}/report.md
+          for f in ${{ env.RESULTS_DIR }}/*.jsonl; do
+            if [ -f "$f" ]; then
+              COUNT=$(wc -l < "$f" || echo 0)
+              echo "- $(basename "$f"): $COUNT findings" >> ${{ env.RESULTS_DIR }}/report.md
+            fi
+          done
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuclei-dast-report
+          path: ${{ env.RESULTS_DIR }}/report.md
+          retention-days: 30
