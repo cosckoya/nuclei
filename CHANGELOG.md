@@ -17,6 +17,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `.github/PULL_REQUEST_TEMPLATE.md` — Enhanced PR checklist with template details
 - `docs/gitflow.md` — Updated with versioning and release process
 
+## [1.0.1] — 2026-11-02
+
+### Added
+- `.github/ISSUE_TEMPLATE/release_request.md` — Release request template
+- `.github/RELEASE_TEMPLATE.md` — Release notes template
+
+### Fixed
+- `.gitleaks.toml` — Removed custom rules causing false positives; using gitleaks default rules
+- `.gitignore` — Added .agentic/ and CLAUDE.md
+
 ## [2.0.0] — 2026-11-02
 
 ### Added

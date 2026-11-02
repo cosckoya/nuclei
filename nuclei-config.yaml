@@ -65,8 +65,10 @@ page-timeout: 20
 # Interactsh (OAST) settings
 no-interactsh: false
 
-# Cloud integration
+# Cloud integration (disabled - no PDCP API key needed)
 dashboard: false
+cloud-upload: false
+disable-cloud-upload-wrn: true
 
 # Update settings
 disable-update-check: false
